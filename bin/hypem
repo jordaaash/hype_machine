@@ -3,7 +3,103 @@
 lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
 $LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
 
+require 'optparse'
 require 'hype_machine'
 
-hypem = HypeMachine::HypeMachine.new
+def strip_heredoc (heredoc)
+  min    = heredoc.scan(/^[ \t]*(?=\S)/).min
+  indent = min.respond_to?(:size) ? min.size : 0
+  heredoc.gsub(/^[ \t]{#{indent}}/, '')
+end
+
+options = {}
+parser = OptionParser.new do |option|
+  option.banner = strip_heredoc(<<-BANNER)
+
+    Command line tool for downloading tracks from HypeMachine.
+
+    Usage: hypem [options?] path directory?
+
+    path: Required.
+    \tHypeMachine user, blog, section, artist, etc.
+    \tPaths with spaces must be quoted.
+    \t(e.g., anthony, blog/earmilk/11067, popular, "artist/Wiz Khalifa")
+
+    directory: Optional.
+    \tAbsolute or relative path to a new or existing directory to download to.
+    \tPaths with spaces must be quoted.
+    \t(e.g. /usr/music, ../music/hypem, "C:\\Users\\Guest\\My Documents\\Music")
+    \tIf not provided, a directory will be chosen based on the path given and relative to the current directory.
+
+    options: Optional.
+  BANNER
+
+  option.on('-h', '--help', 'Display this help screen') do
+    puts option
+    exit
+  end
+
+  option.on('-v', '--version', 'Display the script version') do
+    puts ::HypeMachine.version
+    exit
+  end
+
+  option.on('-s', '--start START', 'Download tracks starting from page #START') do |start|
+    options[:start] = start.to_i
+  end
+
+  option.on('-f', '--finish FINISH', 'Download tracks ending on page #FINISH') do |finish|
+    options[:finish] = finish.to_i
+  end
+
+  option.on('-w', '--wait WAIT', 'Wait #WAIT seconds before downloading each track') do |wait|
+    options[:wait] = wait.to_i
+  end
+
+  option.on('-r', '--tor', 'Use Tor as a proxy') do
+    options[:tor] = true
+  end
+
+  option.on('-x', '--proxy PROXY', 'Route through proxy host PROXY') do |proxy|
+    options[:proxy] = proxy.to_s
+  end
+
+  option.on('-p', '--port PORT', 'Route through proxy port #PORT') do |port|
+    options[:port] = port.to_i
+  end
+
+  option.on('-o', '--overwrite', 'Turn on overwrite mode to overwrite existing files') do
+    options[:overwrite] = true
+  end
+
+  option.on('-q', '--quiet', 'Turn on quiet mode to hide console output') do
+    options[:quiet] = true
+  end
+
+  option.on('-t', '--strict', 'Turn on strict mode to fail on track errors') do
+    options[:strict] = true
+  end
+
+  option.on('-d', '--demo', 'Turn on demo mode to skip downloading') do
+    options[:demo] = true
+  end
+end
+
+parser.parse!
+
+unless (path = ARGV[0])
+  puts strip_heredoc(<<-PROMPT)
+
+    Enter a path to download from -- a HypeMachine user, blog, section, artist, etc.
+    (e.g., anthony, blog/earmilk/11067, popular, "artist/Wiz Khalifa")
+    Paths with spaces must be quoted.
+
+  PROMPT
+  path = gets
+  puts ''
+end
+
+directory = ARGV[1]
+
+hypem = HypeMachine::HypeMachine.new(path, directory, options)
 hypem.run
