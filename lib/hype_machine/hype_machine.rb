@@ -210,23 +210,7 @@ module HypeMachine
 
       puts "#{tab}Found #{total} tracks at #{page_url}", '' unless options[:quiet]
       tracks.each do |track|
-        id        = track['id']
-        key       = track['key']
-        timestamp = track['ts']
-
-        section   = document.css("div#section-track-#{id}")
-        links     = section.css('h3.track_name a')
-        artist    = links[0] ? links[0]['title'].split(' - ').tap { |artist| artist.pop }.join(' ') : 'Unknown Artist'
-        title     = links[1] ? links[1]['title'].split(' - ').tap { |artist| artist.pop }.join(' ') : 'Unknown Title'
-        thumb_url = nil
-        link      = section.css('a.thumb')[0]
-        if link
-          /background:url\((.*?)\)/.match(link.attribute('style')) do |match|
-            thumb_url = match[1]
-          end
-        end
-
-        success = download(id, key, timestamp, artist, title, thumb_url, page_url)
+        success = download(track, page_url)
         if success.nil?
           failed      += 1
           self.failed += 1
@@ -242,8 +226,22 @@ module HypeMachine
       puts "#{tab}Finished downloading tracks from #{page_url}", "#{tab}#{total} total, #{completed} completed, #{skipped} skipped, #{failed} failed", '' unless options[:quiet]
     end
 
-    def download (id, key, timestamp, artist, title, thumb_url, page_url)
-      success = nil
+    def download (track, page_url)
+      success   = nil
+      id        = track['id']
+      key       = track['key']
+      timestamp = track['ts']
+      section   = document.css("div#section-track-#{id}")
+      links     = section.css('h3.track_name a')
+      artist    = links[0] ? links[0]['title'].split(' - ').tap { |artist| artist.pop }.join(' ') : 'Unknown Artist'
+      title     = links[1] ? links[1]['title'].split(' - ').tap { |artist| artist.pop }.join(' ') : 'Unknown Title'
+      thumb_url = nil
+      link      = section.css('a.thumb')[0]
+      if link
+        /background:\s*url\((.*?)\)/.match(link.attribute('style')) do |match|
+          thumb_url = match[1]
+        end
+      end
 
       trackname = "#{artist}___#{title}".gsub(DEFAULTS[:filename][:invalid_characters], '_')
       filename  = "#{trackname}___#{id}___#{timestamp}"
@@ -281,7 +279,7 @@ module HypeMachine
             puts "#{tab}#{tab}Downloading from #{file_url}" unless options[:quiet]
             begin
               response = request(file_url, headers)
-            rescue Exception => error
+            rescue StandardError => error
               source_url += "?retry=1"
               puts "#{tab}#{tab}Retry getting source from #{source_url}" unless options[:quiet]
               response = request(source_url, headers)
@@ -300,39 +298,18 @@ module HypeMachine
             File.delete("#{filepath}.log") if File.exists?("#{filepath}.log")
 
             puts "#{tab}#{tab}Updating ID3 metadata of file #{filepath}" unless options[:quiet]
+
             TagLib::MPEG::File.open(filepath) do |file|
-              file.strip
-
-              tag         = file.id3v2_tag(true)
-              tag.artist  = artist
-              tag.title   = title
-              tag.album   = 'HYPEM'
-              tag.comment = id
-
-              time      = Time.at(timestamp.to_i).localtime
-              date      = TagLib::ID3v2::TextIdentificationFrame.new('TDRC', TagLib::String::UTF8)
-              date.text = time.strftime('%Y-%m-%d')
-              tag.add_frame(date)
-
-              if thumb_url
-                response          = request(thumb_url, headers)
-                cover             = TagLib::ID3v2::AttachedPictureFrame.new
-                cover.mime_type   = "image/png"
-                cover.description = "Cover"
-                cover.type        = TagLib::ID3v2::AttachedPictureFrame::FrontCover
-                cover.picture     = response.body
-                tag.add_frame(cover)
-              end
-
-              file.save
+              tag(file, artist, title, id, thumb_url)
             end
 
             puts "#{tab}#{tab}Finished downloading track #{filename}", '' unless options[:quiet]
+
             success = true
           end
         rescue StandardError => error
           if options[:strict]
-            raise error
+            raise
           else
             message = error.to_s
             File.open("#{filepath}.log", 'w') do |file|
@@ -349,6 +326,33 @@ module HypeMachine
       end
 
       success
+    end
+
+    def tag (file, artist, title, id, thumb_url = nil)
+      file.strip
+
+      tag         = file.id3v2_tag(true)
+      tag.artist  = artist
+      tag.title   = title
+      tag.album   = 'HYPEM'
+      tag.comment = id
+
+      time      = Time.at(timestamp.to_i).localtime
+      date      = TagLib::ID3v2::TextIdentificationFrame.new('TDRC', TagLib::String::UTF8)
+      date.text = time.strftime('%Y-%m-%d')
+      tag.add_frame(date)
+
+      if thumb_url
+        response          = request(thumb_url, headers)
+        cover             = TagLib::ID3v2::AttachedPictureFrame.new
+        cover.mime_type   = 'image/png'
+        cover.description = 'Cover'
+        cover.type        = TagLib::ID3v2::AttachedPictureFrame::FrontCover
+        cover.picture     = response.body
+        tag.add_frame(cover)
+      end
+
+      file.save
     end
 
     def strip_heredoc (heredoc)
