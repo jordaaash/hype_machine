@@ -2,6 +2,33 @@
 
 Command line tool for downloading tracks from HypeMachine.
 
+Usage: hypem [options?] path directory?
+
+path: Required.
+    HypeMachine user, blog, section, artist, etc.
+    Paths with spaces must be quoted.
+    (e.g., anthony, blog/earmilk/11067, popular, "artist/Wiz Khalifa")
+
+directory: Optional.
+    Absolute or relative path to a new or existing directory to download to.
+    Paths with spaces must be quoted.
+    (e.g. /usr/music, ../music/hype_machine, "C:\Users\Guest\My Documents\Music")
+    If not provided, a directory will be chosen based on the path given and relative to the current directory.
+
+options: Optional.
+    -h, --help                       Display this help screen
+    -v, --version                    Display the script version
+    -s, --start START                Download tracks starting from page #START
+    -f, --finish FINISH              Download tracks ending on page #FINISH
+    -w, --wait WAIT                  Wait #WAIT seconds before downloading each track
+    -r, --tor                        Use Tor as a proxy (--host=127.0.0.1 --port=9151)
+    -x, --proxy PROXY                Route through proxy host PROXY
+    -p, --port PORT                  Route through proxy port #PORT
+    -o, --overwrite                  Turn on overwrite mode to overwrite existing files
+    -q, --quiet                      Turn on quiet mode to hide console output
+    -t, --strict                     Turn on strict mode to fail on track errors
+    -d, --demo                       Turn on demo mode to skip downloading
+
 == Contributing to hype_machine
 
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
