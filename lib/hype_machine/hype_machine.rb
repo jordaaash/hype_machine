@@ -6,19 +6,19 @@ require 'taglib'
 module HypeMachine
   class HypeMachine
     DEFAULTS = {
-      :options       => {
-        :start     => 1,
-        :finish    => nil,
-        :wait      => 0,
-        :proxy     => nil,
-        :port      => nil,
-        :tor       => false,
-        :overwrite => false,
-        :quiet     => false,
-        :strict    => false,
-        :demo      => false
+      options:       {
+        start:     1,
+        finish:    nil,
+        wait:      0,
+        proxy:     nil,
+        port:      nil,
+        tor:       false,
+        overwrite: false,
+        quiet:     false,
+        strict:    false,
+        demo:      false
       },
-      :headers       => {
+      headers:       {
         'Accept'              => 'text/html, application/xhtml+xml, application/xml;q=0.9,*/*;q=0.8',
         'Accept-Charset'      => 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
         'Accept-Language'     => 'en-us,en;q=0.5',
@@ -27,15 +27,15 @@ module HypeMachine
         'X-Prototype-Version' => '1.7',
         'X-Requested-With'    => 'XMLHttpRequest'
       },
-      :max_redirects => 2,
-      :filename      => {
-        :extension          => 'mp3',
-        :max_length         => 255,
-        :invalid_characters => /[\x00\/\\:\*\?\"<>\|]/
+      max_redirects: 2,
+      filename:      {
+        extension:          'mp3',
+        max_length:         255,
+        invalid_characters: /[\x00\/\\:\*\?\"<>\|]/
       },
-      :tor           => {
-        :proxy => '127.0.0.1',
-        :port  => 9151
+      tor:           {
+        proxy: '127.0.0.1',
+        port:  9151
       }
     }
 
@@ -58,9 +58,9 @@ module HypeMachine
       options[:finish]  ||= options[:start]
       options[:headers] ||= DEFAULTS[:headers].dup
 
-      raise "Invalid start #{options[:start]}" unless options[:start] >= 1
+      raise "Invalid start #{options[:start]}"   unless options[:start] >= 1
       raise "Invalid finish #{options[:finish]}" unless options[:finish] >= options[:start]
-      raise "Invalid wait #{options[:wait]}" unless options[:wait] >= 0
+      raise "Invalid wait #{options[:wait]}"     unless options[:wait] >= 0
 
       frame_factory                       = TagLib::ID3v2::FrameFactory.instance
       frame_factory.default_text_encoding = TagLib::String::UTF8
