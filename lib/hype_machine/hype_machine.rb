@@ -211,7 +211,7 @@ module HypeMachine
 
             TagLib::MPEG::File.open(filepath) do |file|
               puts "\t\tUpdating ID3 metadata of file #{filepath}" unless options[:quiet]
-              tag(file, artist, title, id, thumb_url)
+              tag(file, timestamp, artist, title, id, thumb_url)
             end
 
             puts "\t\tFinished downloading track #{filename}", '' unless options[:quiet]
@@ -238,7 +238,7 @@ module HypeMachine
       success
     end
 
-    def tag (file, artist, title, id, thumb_url = nil)
+    def tag (file, timestamp, artist, title, id, thumb_url = nil)
       file.strip
 
       tag         = file.id3v2_tag(true)
