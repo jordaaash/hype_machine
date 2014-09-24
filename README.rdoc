@@ -1,8 +1,14 @@
 = hype_machine
 
-Command line tool for downloading tracks from HypeMachine.
+Command line tool for downloading songs from HypeMachine.
 
-Usage: hypem [options?] path directory?
+It is **highly** recommended to [use Tor](https://www.torproject.org/download/download-easy.html.en) and run the command with the `--tor` / `-r` option so you don't get blocked (initial IP ban is 24 hours).
+
+It is _also_ recommended to use be somewhat considerate and use the '--wait' option with a sensible amount (say, 15 seconds: `-w 15`) if you are downloading more than a few tracks.
+
+== Usage
+
+`hypem [options?] path directory?`
 
 path: Required.
     HypeMachine user, blog, section, artist, etc.
@@ -29,18 +35,6 @@ options: Optional.
     -t, --strict                     Turn on strict mode to fail on track errors
     -d, --demo                       Turn on demo mode to skip downloading
 
-== Contributing to hype_machine
-
-* Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
-* Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
-* Fork the project.
-* Start a feature/bugfix branch.
-* Commit and push until you are happy with your contribution.
-* Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
-* Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
-
 == Copyright
 
-Copyright (c) 2014 Jordan Sexton. See LICENSE.txt for
-further details.
-
+Copyright (c) 2014 Jordan Sexton. See LICENSE.txt for further details.
