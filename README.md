@@ -4,12 +4,15 @@ Command line tool for downloading songs from HypeMachine.
 
 It is **highly** recommended to [use Tor](https://www.torproject.org/download/download-easy.html.en) and [run the command](#Usage) with the `--tor` / `-r` option so you don't get blocked (initial IP ban is 24 hours).
 
-It is _also_ recommended to use be somewhat considerate and use the `--wait` option with a sensible amount (say, 15 seconds: `-w 15`) if you are downloading more than a few tracks.
+It is _also_ recommended to use be somewhat considerate and use the `--wait` / `-w` option with a sensible amount (say, 15 seconds: `-w 15`) if you are downloading more than a few tracks.
 
 ## Usage
 
 ```
 hypem [options?] path directory?
+
+example: Download all 50 songs from the Popular list, using Tor and waiting 15 seconds between tracks.
+    hypem -r -w 15 -f 3 popular
 
 path: Required.
     HypeMachine user, blog, section, artist, etc.
@@ -35,6 +38,7 @@ options: Optional.
     -q, --quiet                      Turn on quiet mode to hide console output
     -t, --strict                     Turn on strict mode to fail on track errors
     -d, --demo                       Turn on demo mode to skip downloading
+
 ```
 
 ## Copyright
