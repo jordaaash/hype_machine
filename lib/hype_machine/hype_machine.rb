@@ -1,6 +1,6 @@
 require 'nokogiri'
 require 'json'
-require 'net/http'
+require 'open-uri'
 require 'taglib'
 
 module HypeMachine
@@ -20,10 +20,9 @@ module HypeMachine
       },
       headers:       {
         'Accept'              => 'text/html, application/xhtml+xml, application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Charset'      => 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
-        'Accept-Language'     => 'en-us,en;q=0.5',
+        'Accept-Language'     => 'en-us,en;q=0.8',
         'Connection'          => 'close',
-        'User-Agent'          => 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1',
+        'User-Agent'          => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36',
         'X-Prototype-Version' => '1.7',
         'X-Requested-With'    => 'XMLHttpRequest'
       },
@@ -84,20 +83,25 @@ module HypeMachine
     end
 
     def request (url, headers, redirects = DEFAULTS[:max_redirects])
-      uri      = URI.parse(url)
-      proxy    = Net::HTTP::Proxy(options[:host], options[:port])
-      response = proxy.start(uri.host) do |http|
-        http.request_get(uri.request_uri, headers)
+      uri  = URI.parse(url)
+      port = uri.is_a?(URI::HTTPS) ? 443 : nil
+      http = Net::HTTP.new(uri.host, port, options[:host], options[:port])
+      if uri.is_a?(URI::HTTPS)
+        http.use_ssl     = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
+      request  = Net::HTTP::Get.new(uri.request_uri, headers)
+      response = http.request(request)
 
-      if response.is_a?(Net::HTTPRedirection) && redirects > 0
+      if response.is_a?(Net::HTTPSuccess)
+        response
+      elsif response.is_a?(Net::HTTPRedirection) && redirects > 0
         url = response['Location']
         puts "\t\tRedirecting request to #{url}" unless options[:quiet]
-        response = request(url, headers, redirects - 1)
+        request(url, headers, redirects - 1)
+      else
+        response.error!
       end
-
-      response.error! unless response.is_a?(Net::HTTPSuccess)
-      response
     end
 
     def scan (page)
@@ -188,7 +192,7 @@ module HypeMachine
             puts "\t\tDownloading from #{file_url}" unless options[:quiet]
             begin
               response = request(file_url, headers)
-            rescue StandardError => error
+            rescue Net::ProtocolError => error
               source_url += "?retry=1"
               puts "\t\tRetry getting source from #{source_url}" unless options[:quiet]
               response = request(source_url, headers)
