@@ -1,6 +1,7 @@
 require 'nokogiri'
 require 'json'
-require 'open-uri'
+require 'net/http'
+require 'openssl'
 require 'taglib'
 
 module HypeMachine
