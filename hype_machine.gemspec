@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "bin/hypem",
+    "hype_machine.gemspec",
     "lib/hype_machine.rb",
     "lib/hype_machine/gem_version.rb",
     "lib/hype_machine/hype_machine.rb",
